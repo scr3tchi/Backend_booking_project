@@ -14,6 +14,8 @@ type Event struct {
 	UpdatedAt time.Time
 }
 
+
+//интерфейс для обьявления всех функций которые должны быть использованы
 type EventRepository interface {
 	GetMany(ctx context.Context) ([]*Event, error)
 	GetOne(ctx context.Context, eventId string) (*Event, error)
