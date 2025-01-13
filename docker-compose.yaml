@@ -1,0 +1,52 @@
+
+services:
+  app:
+    tty: true #Чтобы контейнер всегда работал
+    restart: always #Если контейнер выключиться, то он сам включиться
+    image: ticket-booking #Название приложения
+    container_name: ticket-booking #Имя контейнера
+    build: . #Докер должен построить образ из Dockerfile  в текущей директории
+    ports:
+     - 3000:3000
+    env_file: #Указывает фалй которые будут загружены в конейнер
+      - .env
+    networks:
+      - application
+    depends_on: #Указывает что приложение app зависит от контейнера db
+      db:
+        condition: service_healthy #Гарантирует что app не запуститься пока db не будет готова
+    volumes:
+      - .:/src/app
+    command: air -c .air.toml #указывает команду которая будет выполнена при запуске контейнера
+
+  db:
+    image: postgres:alpine #Указывает образ базы данных
+    container_name: ticket-booking-db #Задает имя контейнера для бд
+    environment: #Определяет переменные окружения
+      - POSTGRES_HOST=${DB_HOST}
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    ports:
+     - 5432:5432
+    volumes:
+     - postgres-db:/var/lib/postgresql/data
+    networks:
+      - application
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready
+        - -U
+        - ${DB_USER}
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      
+networks:
+  application:
+
+volumes:
+  postgres-db:
+
+  
